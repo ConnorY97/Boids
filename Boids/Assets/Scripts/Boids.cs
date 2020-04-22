@@ -6,13 +6,17 @@ public class Boids : MonoBehaviour
 {
     public GameObject m_prefab;
 
-    public List<GameObject> m_flock; 
+    public List<GameObject> m_flock;
 
-    [Range(10, 100)]
+    [Range(1, 100)]
     public ushort m_amount = 10;
     //public float m_boidDensity = 0.08f;
 
-    public float radius = 25.0f; 
+    public float radius = 25.0f;
+
+    public float m_avoidanceRadius = 10.0f;
+
+    public float m_maxVelocity = 10.0f;  
 
     // Start is called before the first frame update
     void Start()
@@ -32,36 +36,39 @@ public class Boids : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        while (!gameObject)
+        //while (!m_gamveOver)
             MoveBoidsToNewPos(); 
     }
 
     void MoveBoidsToNewPos()//GameObject a_boid, List<GameObject> a_flock)
     {
-        Vector3 rule1, rule2, rule3 = Vector3.zero;
-        GameObject temp;
-        Rigidbody rb = temp.GetComponent<Rigidbody>(); 
-        foreach (GameObject boid in m_flock)
+        Vector3 cohesionForce, seperationForce, alignmentForce = Vector3.zero;
+        
+        foreach (GameObject newboid in m_flock)
         {
-            rule1 = Rule1(boid);
-            rule2 = Rule2(boid);
-            rule3 = Rule3(boid);
+            Vector3 velocity = newboid.GetComponent<Rigidbody>().velocity;
+            cohesionForce = CalCohesionForce(newboid);
+            seperationForce = CalSeperationForce(newboid);
+            alignmentForce = CalAlignmentForce(newboid);
+            velocity += cohesionForce + seperationForce + alignmentForce * Time.deltaTime;// + alignmentForce * Time.deltaTime;
+            if (velocity.magnitude > m_maxVelocity)
+            {
+                velocity = velocity.normalized * m_maxVelocity; 
+            }
 
-            rb.velocity += rule1 + rule2 + rule3; 
+            newboid.GetComponent<Rigidbody>().velocity = velocity;
+            newboid.transform.rotation = Quaternion.LookRotation(velocity); 
+            //newboid.transform.position += newboid.GetComponent<Rigidbody>().velocity;
+
+            Debug.Log("Seperation" + seperationForce);
+            Debug.Log("Cohesion" + cohesionForce);
+            Debug.Log("Alignment" + alignmentForce);
         }
-        //Vector3 rule1 = Rule1(a_boid, a_flock);
-        //Vector3 rule2 = Rule2(a_boid, a_flock);
-        //Vector3 rule3 = Rule3(a_boid, a_flock);
-
-        //Rigidbody rb = a_boid.GetComponent<Rigidbody>();
-
-        //rb.velocity += rule1 + rule2 + rule3;
-        //a_boid.transform.position += rb.velocity; 
     }
 
-    Vector3 Rule1(GameObject a_boid)
+    Vector3 CalCohesionForce(GameObject a_boid)
     {
         Vector3 pc = Vector3.zero;
         
@@ -72,28 +79,28 @@ public class Boids : MonoBehaviour
                 pc += boid.transform.position; 
             }
         }
-        pc /= m_flock.Count - 1; 
+        pc /= m_flock.Count - 1;
+        
         return (pc - a_boid.transform.position) / 100; 
     }
 
-    Vector3 Rule2(GameObject a_boid)
+    Vector3 CalSeperationForce(GameObject a_boid)
     {
         Vector3 c = Vector3.zero;
         foreach(GameObject boid in m_flock)
         {
             if (boid != a_boid)
             {
-                Vector3 distanceApart = boid.transform.position - a_boid.transform.position;
-                if (distanceApart.magnitude < 100)
+                if ((boid.transform.position - a_boid.transform.position).magnitude < m_avoidanceRadius)
                 {
-                    c -= distanceApart; 
+                    c -= boid.transform.position - a_boid.transform.position; 
                 }
             }
         }
         return c; 
     }
 
-    Vector3 Rule3(GameObject a_boid)
+    Vector3 CalAlignmentForce(GameObject a_boid)
     {
         Vector3 pv = Vector3.zero; 
         foreach(GameObject boid in m_flock)
