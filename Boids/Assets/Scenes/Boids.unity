@@ -305,7 +305,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_prefab
       value: 
-      objectReference: {fileID: 5816536773898022026, guid: c3fc0ebc04c307a4090538a79319d392,
+      objectReference: {fileID: 3210211126039357712, guid: c3fc0ebc04c307a4090538a79319d392,
         type: 3}
     - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
         type: 3}
@@ -315,7 +315,47 @@ PrefabInstance:
     - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
         type: 3}
       propertyPath: m_amount
-      value: 35
+      value: 500
+      objectReference: {fileID: 0}
+    - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
+        type: 3}
+      propertyPath: m_xBounds.x
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
+        type: 3}
+      propertyPath: m_xBounds.y
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
+        type: 3}
+      propertyPath: m_yBounds.x
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
+        type: 3}
+      propertyPath: m_yBounds.y
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
+        type: 3}
+      propertyPath: m_zBounds.x
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
+        type: 3}
+      propertyPath: m_zBounds.y
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
+        type: 3}
+      propertyPath: m_neighbourRadious
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2811267732935161376, guid: f673f97a48673364b89c8a64502a37fe,
+        type: 3}
+      propertyPath: m_neighbourRadius
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3124453019596453328, guid: f673f97a48673364b89c8a64502a37fe,
         type: 3}

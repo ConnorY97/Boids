@@ -1,115 +1,112 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Boids : MonoBehaviour
 {
-    public GameObject m_prefab;
+	public Rigidbody m_prefab;
 
-    public List<GameObject> m_flock;
+	public List<Rigidbody> m_flock;
 
-    [Range(1, 100)]
-    public ushort m_amount = 10;
-    //public float m_boidDensity = 0.08f;
+	//Connor-------------------------------------
+	[Range(1, 500)]
+	public ushort m_amount = 10;
+	public float m_spawnRadius = 25.0f;
+	public float m_avoidanceRadius = 10.0f;
+	public float m_maxVelocity = 10.0f;
+	public float m_neighbourRadius = 10.0f;
+	//Josh--------------------------------------
+	public float m_seperationForceMag = 1.0f;
+	public float m_cohesionForceMag = 100.0f;
+	public float m_alighmentForceMult = 8.0f;
 
-    public float radius = 25.0f;
 
-    public float m_avoidanceRadius = 10.0f;
+	
 
-    public float m_maxVelocity = 10.0f;  
+	// Start is called before the first frame update
+	void Start()
+	{
+		for (int i = 0; i < m_amount; i++)
+		{
+			// Make random position
+			Vector3 newPosition = Random.insideUnitSphere * m_spawnRadius;// * m_boidDensity
+			// Overwrite y axis
+			newPosition.y = 0;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        for (int i = 0; i < m_amount; i++)
-        {
-            GameObject temp = Instantiate
-                (
-                 m_prefab,
-                 Random.insideUnitSphere * radius,// * m_boidDensity,
-                 Random.rotation,
-                 transform
-                );
-            temp.name = "Boid " + i;
-            m_flock.Add(temp); 
-        }
-    }
+			Rigidbody temp = Instantiate
+				(
+				 m_prefab,
+				 newPosition,
+				 Random.rotation, //Random.rotation,
+				 transform
+				);
+			temp.name = "Boid " + i;
 
-    // Update is called once per frame
-    void FixedUpdate()
-    {
-        //while (!m_gamveOver)
-            MoveBoidsToNewPos(); 
-    }
+			//temp.velocity = new Vector3(temp.velocity.x, 0, temp.velocity.z)
 
-    void MoveBoidsToNewPos()//GameObject a_boid, List<GameObject> a_flock)
-    {
-        Vector3 cohesionForce, seperationForce, alignmentForce = Vector3.zero;
-        
-        foreach (GameObject newboid in m_flock)
-        {
-            Vector3 velocity = newboid.GetComponent<Rigidbody>().velocity;
-            cohesionForce = CalCohesionForce(newboid);
-            seperationForce = CalSeperationForce(newboid);
-            alignmentForce = CalAlignmentForce(newboid);
-            velocity += cohesionForce + seperationForce + alignmentForce * Time.deltaTime;// + alignmentForce * Time.deltaTime;
-            if (velocity.magnitude > m_maxVelocity)
-            {
-                velocity = velocity.normalized * m_maxVelocity; 
-            }
+			m_flock.Add(temp);
+		}
+	}
 
-            newboid.GetComponent<Rigidbody>().velocity = velocity;
-            newboid.transform.rotation = Quaternion.LookRotation(velocity); 
-            //newboid.transform.position += newboid.GetComponent<Rigidbody>().velocity;
+	// Update is called once per frame
+	void FixedUpdate()
+	{
+		MoveBoidsToNewPos();
+	}
 
-            Debug.Log("Seperation" + seperationForce);
-            Debug.Log("Cohesion" + cohesionForce);
-            Debug.Log("Alignment" + alignmentForce);
-        }
-    }
+	void MoveBoidsToNewPos()//GameObject a_boid, List<GameObject> a_flock)
+	{
+		Vector3 allForces = Vector3.zero;
+		foreach (Rigidbody newBoid in m_flock)
+		{
+			Vector3 velocity = newBoid.velocity;
+			allForces = CalForces(newBoid);
+			velocity += allForces * Time.fixedDeltaTime;
+			if (velocity.magnitude > m_maxVelocity)
+			{
+				velocity = velocity.normalized * m_maxVelocity;
+			}
 
-    Vector3 CalCohesionForce(GameObject a_boid)
-    {
-        Vector3 pc = Vector3.zero;
-        
-        foreach (GameObject boid in m_flock)
-        {
-            if (boid != a_boid)
-            {
-                pc += boid.transform.position; 
-            }
-        }
-        pc /= m_flock.Count - 1;
-        
-        return (pc - a_boid.transform.position) / 100; 
-    }
+			newBoid.velocity = velocity;
+		}
+		Debug.Log("Allforce" + allForces);
+	}
 
-    Vector3 CalSeperationForce(GameObject a_boid)
-    {
-        Vector3 c = Vector3.zero;
-        foreach(GameObject boid in m_flock)
-        {
-            if (boid != a_boid)
-            {
-                if ((boid.transform.position - a_boid.transform.position).magnitude < m_avoidanceRadius)
-                {
-                    c -= boid.transform.position - a_boid.transform.position; 
-                }
-            }
-        }
-        return c; 
-    }
+	Vector3 CalForces(Rigidbody a_boid)
+	{
+		Vector3 cohesionVector = Vector3.zero;
+		Vector3 separationVector = Vector3.zero;
+		Vector3 alignmentVector = Vector3.zero;
 
-    Vector3 CalAlignmentForce(GameObject a_boid)
-    {
-        Vector3 pv = Vector3.zero; 
-        foreach(GameObject boid in m_flock)
-        {
-            if (boid != a_boid)
-            {
-                pv += boid.GetComponent<Rigidbody>().velocity;
-            }
-        }
-        return (pv - a_boid.GetComponent<Rigidbody>().velocity) / 8; 
-    }
+		// Gather all in radius
+		Collider[] neighbours = Physics.OverlapSphere(a_boid.transform.position, m_neighbourRadius);
+
+		for (int i = 0; i < neighbours.Length; i++)
+		{
+			// Get rigidbody of current boid
+			Rigidbody rb = neighbours[i].GetComponent<Rigidbody>();
+			if (rb != a_boid)
+			{
+				// Cohesion force
+				cohesionVector += neighbours[i].transform.position;
+
+				// Separation force
+				if ((neighbours[i].transform.position - a_boid.transform.position).magnitude < m_avoidanceRadius)
+				{
+					separationVector -= (rb.transform.position - a_boid.transform.position) / m_seperationForceMag;
+				}
+
+				// Alignment force
+				alignmentVector += rb.velocity;
+			}
+		}
+
+
+		cohesionVector /= m_flock.Count - 1;
+
+		cohesionVector = (cohesionVector - a_boid.transform.position) / m_cohesionForceMag;
+
+		alignmentVector = (alignmentVector - a_boid.velocity) / m_alighmentForceMult;
+
+		return cohesionVector + separationVector + alignmentVector;
+	}
 }
